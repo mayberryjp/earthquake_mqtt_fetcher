@@ -113,33 +113,43 @@ def fetch_and_send_new_earthquakes():
     if new_earthquake_count > 0:
         for quake in filtered_quakes:
             xml_url = quake["id"]
+           # xml_url="https://www.data.jma.go.jp/developer/xml/data/20240109041859_0_VXSE53_010000.xml"
             logger.debug(f"Getting specific file at {xml_url}")
 
             response=requests.get(xml_url)
+
             one_quake=xmltodict.parse(response.text, force_list={'Pref'})
 
             #print(json.dumps(one_quake))
 
-            new_quake={}
-            new_quake["jma_eid"] = one_quake["Report"]["Head"]["EventID"]
-            new_quake["jma_rdt"] = one_quake["Report"]["Head"]["ReportDateTime"]
-            new_quake["jma_at"] = one_quake["Report"]["Body"]["Earthquake"]["OriginTime"]
-            for prefecture_int in one_quake["Report"]["Body"]['Intensity']["Observation"]["Pref"]:
-                prefecture_name = [obj for obj in PREFECTURE_LIST if obj["iso_code"] == prefecture_int["Code"]]
-                new_quake["prefecture_name"] = prefecture_name[0]["name"]
-                new_quake["prefecture_maxi"] = prefecture_int["MaxInt"]
-                new_quake["mqtt_timestamp"] = str(datetime.now(pytz.timezone('Asia/Tokyo')).isoformat())
-                new_quake["mqtt_uuid"] = str(uuid.uuid4())
-                new_quake["source"] = atom_url
-                new_quake["issued_to_mqtt_delay"] = (datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.fromisoformat(new_quake["jma_rdt"])).total_seconds()
-                new_quake["jma_observed_to_issued_delay"] = (datetime.fromisoformat(new_quake["jma_rdt"]) - datetime.fromisoformat(new_quake["jma_at"])).total_seconds()
-                payload = json.dumps(new_quake)
-                logger.info(f"New earthquake details -> {payload}")
-                if SEND_MQTT==1:
-                    send_to_mqtt(payload)
+            Proceed = True
+            try:
+                test1 = one_quake["Report"]["Body"]["Intensity"]["Observation"]["Pref"][0]
+            except (TypeError, KeyError):
+                 logger.info(f"Skipping this file because it doesnt have correct schema: {xml_url}")
+                 Proceed=False
 
-            logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["updated"]}')
-            record_new_earthquake(quake["updated"])
+            if (Proceed==True):
+                new_quake={}
+                new_quake["jma_eid"] = one_quake["Report"]["Head"]["EventID"]
+                new_quake["jma_rdt"] = one_quake["Report"]["Head"]["ReportDateTime"]
+                new_quake["jma_at"] = one_quake["Report"]["Head"]["TargetDateTime"]
+                for prefecture_int in one_quake["Report"]["Body"]['Intensity']["Observation"]["Pref"]:
+                    prefecture_name = [obj for obj in PREFECTURE_LIST if obj["iso_code"] == prefecture_int["Code"]]
+                    new_quake["prefecture_name"] = prefecture_name[0]["name"]
+                    new_quake["prefecture_maxi"] = prefecture_int["MaxInt"]
+                    new_quake["mqtt_timestamp"] = str(datetime.now(pytz.timezone('Asia/Tokyo')).isoformat())
+                    new_quake["mqtt_uuid"] = str(uuid.uuid4())
+                    new_quake["source"] = atom_url
+                    new_quake["issued_to_mqtt_delay"] = (datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.fromisoformat(new_quake["jma_rdt"])).total_seconds()
+                    new_quake["jma_observed_to_issued_delay"] = (datetime.fromisoformat(new_quake["jma_rdt"]) - datetime.fromisoformat(new_quake["jma_at"])).total_seconds()
+                    payload = json.dumps(new_quake)
+                    logger.info(f"New earthquake details -> {payload}")
+                    if SEND_MQTT==1:
+                        send_to_mqtt(payload)
+
+                logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["updated"]}')
+                record_new_earthquake(quake["updated"])
         
 
 def send_to_mqtt(quake):

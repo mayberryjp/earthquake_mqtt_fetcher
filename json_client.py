@@ -7,12 +7,13 @@ import pytz
 import uuid
 import os
 from datetime import datetime
+import sqlite3
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
-from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,JSON_LASTMODIFIED_TEXT_FILE,JSON_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON
+from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,JSON_LASTMODIFIED_TEXT_FILE,JSON_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE
 
 def record_new_earthquake(new_earthquake: str):
     with open(JSON_EARTHQUAKE_TEXT_FILE, "w") as file:
@@ -82,6 +83,8 @@ def check_last_modified():
 
 def fetch_and_send_new_earthquakes():
 
+    connection = sqlite3.connect(DATABASE)
+    cursor = connection.cursor()
     json_url = "https://www.jma.go.jp/bosai/quake/data/list.json"
 
     with open(PREFECTURE_JSON,encoding="utf8") as f:
@@ -121,9 +124,12 @@ def fetch_and_send_new_earthquakes():
                 logger.info(f"New earthquake details -> {payload}")
                 if SEND_MQTT==1:
                     send_to_mqtt(payload)
+                cursor.execute('INSERT OR REPLACE INTO earthquakes (eid, arrival_timestamp, json_timestamp) VALUES (?, ?, ?)', (new_quake["jma_eid"], new_quake["jma_at"], new_quake["mqtt_timestamp"]))
             logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["ctt"]}')
             record_new_earthquake(quake["ctt"])
-        
+
+    connection.commit()
+    connection.close()     
 
 def send_to_mqtt(quake):
     publish.single("earthquake", quake, hostname=CONST_MQTT_HOST, port=1883,auth={"username":CONST_MQTT_USERNAME, "password":CONST_MQTT_PASSWORD})

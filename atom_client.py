@@ -150,7 +150,8 @@ def fetch_and_send_new_earthquakes():
                     logger.info(f"New earthquake details -> {payload}")
                     if SEND_MQTT==1:
                         send_to_mqtt(payload)
-                    cursor.execute('INSERT OR REPLACE INTO earthquakes (eid, arrival_timestamp, atom_timestamp) VALUES (?, ?, ?)', (new_quake["jma_eid"], new_quake["jma_at"], new_quake["mqtt_timestamp"]))
+                    cursor.execute('INSERT OR IGNORE INTO earthquakes (eid, arrival_timestamp) VALUES (?, ?)', (new_quake["jma_eid"], new_quake["jma_at"]))
+                    cursor.execute(f'UPDATE earthquakes set atom_timestamp= ? where eid = ?', (new_quake["mqtt_timestamp"], new_quake["jma_eid"]) )
                 logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["updated"]}')
                 record_new_earthquake(quake["updated"])
 

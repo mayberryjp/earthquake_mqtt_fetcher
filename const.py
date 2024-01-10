@@ -7,5 +7,6 @@ ATOM_EARTHQUAKE_TEXT_FILE="atom_earthquake.txt"
 ATOM_LASTMODIFIED_TEXT_FILE="atom_lastmodified.txt"
 SEND_MQTT=0
 LOAD_FILE=0
-RESET_EVERY_RUN=0
+RESET_EVERY_RUN=1
 PREFECTURE_JSON="prefecture.json"
+DATABASE="earthquake.db"

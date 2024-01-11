@@ -1,12 +1,12 @@
 CONST_MQTT_HOST="usavpn.832-5.jp"
 CONST_MQTT_USERNAME="japan"
 CONST_MQTT_PASSWORD="earthquake"
-JSON_EARTHQUAKE_TEXT_FILE="/home/mayberry/json_earthquake.txt"
-JSON_LASTMODIFIED_TEXT_FILE="/home/mayberry/json_lastmodified.txt"
-ATOM_EARTHQUAKE_TEXT_FILE="/home/mayberry/atom_earthquake.txt"
-ATOM_LASTMODIFIED_TEXT_FILE="/home/mayberry/atom_lastmodified.txt"
+JSON_EARTHQUAKE_TEXT_FILE="/data/json_earthquake.txt"
+JSON_LASTMODIFIED_TEXT_FILE="/data/json_lastmodified.txt"
+ATOM_EARTHQUAKE_TEXT_FILE="/data/atom_earthquake.txt"
+ATOM_LASTMODIFIED_TEXT_FILE="/data/atom_lastmodified.txt"
 SEND_MQTT=1
 LOAD_FILE=0
 RESET_EVERY_RUN=0
 PREFECTURE_JSON="prefecture.json"
-DATABASE="/home/mayberry/earthquake.db"
+DATABASE="/data/earthquake.db"

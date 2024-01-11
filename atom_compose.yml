@@ -4,4 +4,4 @@ services:
     image: earthquake-mqtt-fetcher-atom-client:v1.0.9
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /earthquake_mqtt_fetcher:/home/mayberry/earthquake_mqtt_fetcher
+      - /earthquake_mqtt_fetcher:/data

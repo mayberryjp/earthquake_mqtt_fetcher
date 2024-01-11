@@ -6,6 +6,7 @@ import sys
 import pytz
 import uuid
 import os
+import time
 from datetime import datetime
 import sqlite3
 
@@ -138,6 +139,8 @@ def send_to_mqtt(quake):
 
 if __name__ == "__main__":
     initialize()
-    has_been_modified = check_last_modified()
-    if (has_been_modified):
-        fetch_and_send_new_earthquakes()
+    while True:
+        has_been_modified = check_last_modified()
+        if (has_been_modified):
+            fetch_and_send_new_earthquakes()
+        time.sleep(30)

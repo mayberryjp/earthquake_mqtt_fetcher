@@ -8,6 +8,7 @@ import uuid
 import os
 import feedparser
 import xmltodict
+import time
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -164,6 +165,8 @@ def send_to_mqtt(quake):
 
 if __name__ == "__main__":
     initialize()
-    has_been_modified = check_last_modified()
-    if (has_been_modified):
-        fetch_and_send_new_earthquakes()
+    while True:
+        has_been_modified = check_last_modified()
+        if (has_been_modified):
+            fetch_and_send_new_earthquakes()
+        time.sleep(30)

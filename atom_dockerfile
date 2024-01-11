@@ -3,7 +3,7 @@ ARG CACHEBUST=1
 FROM python:3.11.7
 
 # Set the working directory
-WORKDIR /atom-client-v1.0.12
+WORKDIR /atom-client-v1.0.15
 
 # Copy the requirements file
 #COPY requirements.txt .
@@ -17,7 +17,6 @@ RUN venv/bin/pip install xmltodict
 RUN venv/bin/pip install feedparser
 RUN venv/bin/pip install requests
 RUN venv/bin/pip install pytz
-RUN venv/bin/pip install MySQL_python==1.2.4
 
 # Copy the app files
 #COPY myapp/ .

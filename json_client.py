@@ -140,9 +140,9 @@ def send_to_mqtt(quake):
     client.connect( CONST_MQTT_HOST, 1883)
     payload = json.dumps(quake)
     logger.info(f"New earthquake details -> {payload}")
-    client.publish(f"earthquake/{quake["prefecture_name"].lower()}", payload=payload, qos=0, retain=False)
-    client.publish(f"homeassistant/sensor/japan_earthquake_{quake["prefecture_name"].lower()}/state", payload=int(float(remove_non_numeric(quake["prefecture_maxi"]))), qos=0, retain=False)
-    client.publish(f"homeassistant/sensor/japan_earthquake_{quake["prefecture_name"].lower()}/state", payload=0, qos=0, retain=False)
+    client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=int(float(remove_non_numeric(quake["prefecture_maxi"]))), qos=0, retain=False)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect() 
 
 if __name__ == "__main__":

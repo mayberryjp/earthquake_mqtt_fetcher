@@ -193,7 +193,7 @@ def reset_quakes_to_zero(quake):
     client = mqtt.Client()
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
-    logger.info(f"Resetting quake to zero -> {quake["prefecture_name"]}")
+    logger.info(f'Resetting quake to zero -> {quake["prefecture_name"]}')
     client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 

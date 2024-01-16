@@ -3,7 +3,7 @@ ARG CACHEBUST=1
 FROM python:3.11.7
 
 # Set the working directory
-WORKDIR /atom-client-v1.0.18
+WORKDIR /atom-client-v1.0.19
 
 # Copy the requirements file
 #COPY requirements.txt .

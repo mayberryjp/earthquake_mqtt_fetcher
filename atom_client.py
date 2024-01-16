@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
-from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,ATOM_LASTMODIFIED_TEXT_FILE,ATOM_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE
+from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,ATOM_LASTMODIFIED_TEXT_FILE,ATOM_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE, VERSION
 
 def record_new_earthquake(new_earthquake: str):
     with open(ATOM_EARTHQUAKE_TEXT_FILE, "w") as file:
@@ -117,6 +117,8 @@ def fetch_and_send_new_earthquakes():
 
     filtered_quakes.reverse()
 
+    quake_list=[]
+
     if new_earthquake_count > 0:
         for quake in filtered_quakes:
             xml_url = quake["id"]
@@ -144,7 +146,7 @@ def fetch_and_send_new_earthquakes():
                 for prefecture_int in one_quake["Report"]["Body"]['Intensity']["Observation"]["Pref"]:
                     prefecture_name = [obj for obj in PREFECTURE_LIST if obj["iso_code"] == prefecture_int["Code"]]
                     new_quake["prefecture_name"] = prefecture_name[0]["name"]
-                    new_quake["prefecture_maxi"] = prefecture_int["MaxInt"]
+                    new_quake["prefecture_maxi"] = int(float(remove_non_numeric(prefecture_int["MaxInt"]))) 
                     new_quake["mqtt_timestamp"] = str(datetime.now(pytz.timezone('Asia/Tokyo')).isoformat())
                     new_quake["mqtt_uuid"] = str(uuid.uuid4())
                     new_quake["source"] = atom_url
@@ -154,9 +156,28 @@ def fetch_and_send_new_earthquakes():
                         send_to_mqtt(new_quake)
                     cursor.execute('INSERT OR IGNORE INTO earthquakes (eid, arrival_timestamp) VALUES (?, ?)', (new_quake["jma_eid"], new_quake["jma_at"]))
                     cursor.execute(f'UPDATE earthquakes set atom_timestamp= ? where eid = ?', (new_quake["mqtt_timestamp"], new_quake["jma_eid"]) )
+                    quake_list.append(new_quake)
+
                 logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["updated"]}')
                 record_new_earthquake(quake["updated"])
-  
+
+        send_any_to_mqtt(quake_list)
+        time.sleep(20)
+        for zero_quake in quake_list:
+            reset_quakes_to_zero(zero_quake)
+        reset_any_to_zero()
+    connection.commit()
+    connection.close()    
+
+def send_any_to_mqtt(quake_list):
+    max_object = max(quake_list, key=lambda x: x["prefecture_maxi"])
+    client = mqtt.Client()
+    client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
+    client.connect( CONST_MQTT_HOST, 1883) 
+    logger.info(f"Sending max intensity as Any -> Any")
+    client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=max_object["prefecture_maxi"], qos=0, retain=False)
+    client.disconnect()   
+
 
 def send_to_mqtt(quake):
     client = mqtt.Client()
@@ -165,11 +186,28 @@ def send_to_mqtt(quake):
     payload = json.dumps(quake)
     logger.info(f"New earthquake details -> {payload}")
     client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
-    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=int(float(remove_non_numeric(quake["prefecture_maxi"]))), qos=0, retain=False)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=quake["prefecture_maxi"], qos=0, retain=False)
+    client.disconnect()   
+
+def reset_quakes_to_zero(quake):
+    client = mqtt.Client()
+    client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
+    client.connect( CONST_MQTT_HOST, 1883) 
+    logger.info(f"Resetting quake to zero -> {quake["prefecture_name"]}")
     client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 
+
+def reset_any_to_zero():
+    client = mqtt.Client()
+    client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
+    client.connect( CONST_MQTT_HOST, 1883) 
+    logger.info(f"Resetting quake to zero -> Any")
+    client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=0, qos=0, retain=False)
+    client.disconnect()   
+
 if __name__ == "__main__":
+    print(f"I am atom client running {VERSION}")
     initialize()
     while True:
         has_been_modified = check_last_modified()

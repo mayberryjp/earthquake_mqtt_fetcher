@@ -14,4 +14,8 @@ DATABASE="earthquake.db"
 VERSION="v1.0.19"
 =======
 DATABASE="/data/earthquake.db"
+<<<<<<< HEAD
 >>>>>>> fe14e04ae5b3e65f2f8ae5da3b8998cd54704254
+=======
+VERSION="v1.0.19"
+>>>>>>> 9384c2f524df60fed86a78683327bc616887c46d

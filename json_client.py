@@ -110,6 +110,8 @@ def fetch_and_send_new_earthquakes():
 
     filtered_quakes.reverse()
 
+    quake_list=[]
+
     if new_earthquake_count > 0:
         for quake in filtered_quakes:
             new_quake={}
@@ -128,6 +130,8 @@ def fetch_and_send_new_earthquakes():
                     send_to_mqtt(new_quake)
                 cursor.execute('INSERT OR IGNORE INTO earthquakes (eid, arrival_timestamp) VALUES (?, ?)', (new_quake["jma_eid"], new_quake["jma_at"]))
                 cursor.execute(f'UPDATE earthquakes set json_timestamp= ? where eid = ?', (new_quake["mqtt_timestamp"], new_quake["jma_eid"]) )
+                quake_list.append(new_quake)
+                
             logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["ctt"]}')
             record_new_earthquake(quake["ctt"])
 

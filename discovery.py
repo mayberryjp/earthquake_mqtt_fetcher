@@ -44,14 +44,14 @@ for prefecture in PREFECTURE_LIST:
     # Convert dictionary to JSON string
     serialized_message = json.dumps(prefecture_sensor.to_json())
     print(f"Sending sensor -> {serialized_message}")
-   # client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/config", payload=serialized_message, qos=0, retain=True)
-    #client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/state", payload=0, qos=0, retain=False)
+    #client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/config", payload=serialized_message, qos=0, retain=True)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/state", payload=0, qos=0, retain=True)
 
 any_prefecture_sensor=JapanEarthquakeSensors("Any")
 serialized_message = json.dumps(any_prefecture_sensor.to_json())
 print(f"Sending sensor -> {serialized_message}")
-client.publish(f"homeassistant/sensor/japan_earthquake_any/config", payload=serialized_message, qos=0, retain=True)
-client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=0, qos=0, retain=False)
+#client.publish(f"homeassistant/sensor/japan_earthquake_any/config", payload=serialized_message, qos=0, retain=True)
+client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=0, qos=0, retain=True)
 
 # Disconnect the client after publishing
 client.disconnect()

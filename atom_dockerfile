@@ -1,8 +1,9 @@
 # Use an official Python runtime as the base image
+ARG CACHEBUST=1 
 FROM python:3.11.7
 
 # Set the working directory
-WORKDIR /myapp
+WORKDIR /atom-client-v1.0.16
 
 # Copy the requirements file
 #COPY requirements.txt .
@@ -17,12 +18,11 @@ RUN venv/bin/pip install feedparser
 RUN venv/bin/pip install requests
 RUN venv/bin/pip install pytz
 
-
 # Copy the app files
 #COPY myapp/ .
 
 # Expose the port
-#EXPOSE 5000
+#EXPOSE 5102
 
 # Run the app
 CMD ["venv/bin/python", "atom_client.py"]

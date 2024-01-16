@@ -1,6 +1,6 @@
 import json
 import requests
-import paho.mqtt.publish as publish
+import paho.mqtt.client as mqtt
 import logging
 import sys
 import pytz
@@ -11,6 +11,7 @@ import xmltodict
 import time
 import sqlite3
 from datetime import datetime, timedelta
+import re
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -41,6 +42,8 @@ def get_last_modified():
         read_string = file.read()
     return read_string
 
+def remove_non_numeric(input_str):
+    return re.sub(r'\D', '', input_str)
 
 def initialize():
     if RESET_EVERY_RUN==1:
@@ -147,21 +150,24 @@ def fetch_and_send_new_earthquakes():
                     new_quake["source"] = atom_url
                     new_quake["issued_to_mqtt_delay"] = (datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.fromisoformat(new_quake["jma_rdt"])).total_seconds()
                     new_quake["jma_observed_to_issued_delay"] = (datetime.fromisoformat(new_quake["jma_rdt"]) - datetime.fromisoformat(new_quake["jma_at"])).total_seconds()
-                    payload = json.dumps(new_quake)
-                    logger.info(f"New earthquake details -> {payload}")
                     if SEND_MQTT==1:
-                        send_to_mqtt(payload)
+                        send_to_mqtt(new_quake)
                     cursor.execute('INSERT OR IGNORE INTO earthquakes (eid, arrival_timestamp) VALUES (?, ?)', (new_quake["jma_eid"], new_quake["jma_at"]))
                     cursor.execute(f'UPDATE earthquakes set atom_timestamp= ? where eid = ?', (new_quake["mqtt_timestamp"], new_quake["jma_eid"]) )
                 logger.info(f'Updating ctt from {last_earthquake_ctt} to {quake["updated"]}')
                 record_new_earthquake(quake["updated"])
-
-    connection.commit()
-    connection.close()      
+  
 
 def send_to_mqtt(quake):
-    publish.single("earthquake", quake, hostname=CONST_MQTT_HOST, port=1883,auth={"username":CONST_MQTT_USERNAME, "password":CONST_MQTT_PASSWORD})
-
+    client = mqtt.Client()
+    client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
+    client.connect( CONST_MQTT_HOST, 1883)
+    payload = json.dumps(quake)
+    logger.info(f"New earthquake details -> {payload}")
+    client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=int(float(remove_non_numeric(quake["prefecture_maxi"]))), qos=0, retain=False)
+    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
+    client.disconnect()   
 
 if __name__ == "__main__":
     initialize()

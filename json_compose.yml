@@ -1,7 +1,7 @@
 version: "3"
 services:
   earthquake-mqtt-fetcher-json-client:
-    image: earthquake-mqtt-fetcher-json-client:v1.0.19
+    image: earthquake-mqtt-fetcher-json-client:v1.0.20
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /earthquake_mqtt_fetcher:/data

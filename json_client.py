@@ -114,10 +114,10 @@ def fetch_and_send_new_earthquakes():
 
     if new_earthquake_count > 0:
         for quake in filtered_quakes:
-            new_quake={}
-            for property in ("eid","mag","maxi","en_anm","ctt","rdt","at"):
-                new_quake["jma_" + property] = quake[property]
             for prefecture_int in quake["int"]:
+                new_quake={}
+                for property in ("eid","mag","maxi","en_anm","ctt","rdt","at"):
+                    new_quake["jma_" + property] = quake[property]
                 prefecture_name = [obj for obj in PREFECTURE_LIST if obj["iso_code"] == prefecture_int["code"]]
                 new_quake["prefecture_name"] = prefecture_name[0]["name"]
                 new_quake["prefecture_maxi"] = int(float(remove_non_numeric(prefecture_int["maxi"]))) 
@@ -126,6 +126,8 @@ def fetch_and_send_new_earthquakes():
                 new_quake["source"] = json_url
                 new_quake["issued_to_mqtt_delay"] = (datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.fromisoformat(new_quake["jma_rdt"])).total_seconds()
                 new_quake["jma_observed_to_issued_delay"] = (datetime.fromisoformat(new_quake["jma_rdt"]) - datetime.fromisoformat(new_quake["jma_at"])).total_seconds()
+                payload = json.dumps(new_quake)
+                logger.info(f"New earthquake details -> {payload}")
                 if SEND_MQTT==1:
                     send_to_mqtt(new_quake)
                 cursor.execute('INSERT OR IGNORE INTO earthquakes (eid, arrival_timestamp) VALUES (?, ?)', (new_quake["jma_eid"], new_quake["jma_at"]))
@@ -137,8 +139,8 @@ def fetch_and_send_new_earthquakes():
 
         send_any_to_mqtt(quake_list)
         time.sleep(20)
-        for zero_quake in quake_list:
-            reset_quakes_to_zero(zero_quake)
+
+        reset_quakes_to_zero(quake_list)
         reset_any_to_zero()
     connection.commit()
     connection.close()     
@@ -148,7 +150,7 @@ def send_any_to_mqtt(quake_list):
     client = mqtt.Client()
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
-    logger.info(f"Sending max intensity as Any -> Any")
+    logger.info(f"Sending max intensity as Any -> {max_object['prefecture_maxi']}")
     client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=max_object["prefecture_maxi"], qos=0, retain=False)
     client.disconnect()   
 
@@ -157,17 +159,21 @@ def send_to_mqtt(quake):
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883)
     payload = json.dumps(quake)
-    logger.info(f"New earthquake details -> {payload}")
     client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
     client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=quake["prefecture_maxi"], qos=0, retain=False)
     client.disconnect()   
 
-def reset_quakes_to_zero(quake):
+def reset_quakes_to_zero(quake_list):
+    payload = json.dumps(quake_list)
+    logger.info(f"whole reset list-> {payload}")
     client = mqtt.Client()
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
-    logger.info(f'Resetting quake to zero -> {quake["prefecture_name"]}')
-    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
+    for quake in quake_list:
+        payload = json.dumps(quake)
+        logger.info(f"Reset to zero dump -> {payload}")
+        logger.info(f'Resetting quake to zero -> {quake["prefecture_name"]}')
+        client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 
 

@@ -170,7 +170,7 @@ def fetch_and_send_new_earthquakes():
 
 def send_any_to_mqtt(quake_list):
     max_object = max(quake_list, key=lambda x: x["prefecture_maxi"])
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
     logger.info(f"Sending max intensity as Any -> {max_object['prefecture_maxi']}")
@@ -179,7 +179,7 @@ def send_any_to_mqtt(quake_list):
 
 
 def send_to_mqtt(quake):
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883)
     payload = json.dumps(quake)
@@ -189,7 +189,7 @@ def send_to_mqtt(quake):
     client.disconnect()   
 
 def reset_quakes_to_zero(quake_list):
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
     for quake in quake_list:
@@ -201,7 +201,7 @@ def reset_quakes_to_zero(quake_list):
 
 
 def reset_any_to_zero():
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
     logger.info(f"Resetting quake to zero -> Any")

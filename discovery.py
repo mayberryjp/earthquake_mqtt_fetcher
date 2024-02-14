@@ -32,7 +32,7 @@ with open(PREFECTURE_JSON,encoding="utf8") as f:
 
 
 # Create MQTT client
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
 client.connect( CONST_MQTT_HOST, 1883)
 

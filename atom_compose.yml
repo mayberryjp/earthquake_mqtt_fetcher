@@ -2,7 +2,7 @@ version: "3"
 services:
   earthquake-mqtt-fetcher-atom-client:
     container_name: earthquake-mqtt-fetcher-atom-client
-    image: earthquake-mqtt-fetcher-atom-client:v1.0.23
+    image: earthquake-mqtt-fetcher-atom-client:v1.0.24
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /earthquake_mqtt_fetcher:/data

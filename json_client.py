@@ -138,7 +138,7 @@ def fetch_and_send_new_earthquakes():
             record_new_earthquake(quake["ctt"])
 
         send_any_to_mqtt(quake_list)
-        time.sleep(20)
+        time.sleep(120)
 
         reset_quakes_to_zero(quake_list)
         reset_any_to_zero()

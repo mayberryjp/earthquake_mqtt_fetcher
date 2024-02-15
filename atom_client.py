@@ -162,9 +162,6 @@ def fetch_and_send_new_earthquakes():
                 record_new_earthquake(quake["updated"])
 
         send_any_to_mqtt(quake_list)
-        time.sleep(120)
-        reset_quakes_to_zero(quake_list)
-        reset_any_to_zero()
     connection.commit()
     connection.close()    
 
@@ -188,15 +185,17 @@ def send_to_mqtt(quake):
     client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=quake["prefecture_maxi"], qos=0, retain=False)
     client.disconnect()   
 
-def reset_quakes_to_zero(quake_list):
+def reset_all_to_zero():
+    with open(PREFECTURE_JSON,encoding="utf8") as f:
+        PREFECTURE_LIST=json.load(f)
+
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.connect( CONST_MQTT_HOST, 1883) 
-    for quake in quake_list:
-        payload = json.dumps(quake)
-        logger.info(f"Reset to zero dump -> {payload}")
-        logger.info(f'Resetting quake to zero -> {quake["prefecture_name"]}')
-        client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=0, qos=0, retain=False)
+
+    for prefecture in PREFECTURE_LIST:
+        logger.info(f'Resetting quake to zero -> {prefecture["name"].lower()}')
+        client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 
 
@@ -216,3 +215,5 @@ if __name__ == "__main__":
         if (has_been_modified):
             fetch_and_send_new_earthquakes()
         time.sleep(30)
+        reset_all_to_zero()
+        reset_any_to_zero()

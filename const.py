@@ -10,4 +10,4 @@ LOAD_FILE=0
 RESET_EVERY_RUN=0
 PREFECTURE_JSON="prefecture.json"
 DATABASE="/data/earthquake.db"
-VERSION="v1.0.25"
+VERSION="v1.0.26"

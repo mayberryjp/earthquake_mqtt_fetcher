@@ -195,7 +195,7 @@ def reset_all_to_zero():
 
     for prefecture in PREFECTURE_LIST:
         logger.info(f'Resetting quake to zero -> {prefecture["name"].lower()}')
-        client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture["name"].lower()}/state", payload=0, qos=0, retain=False)
+        client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture['name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 
 

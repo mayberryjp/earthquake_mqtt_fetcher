@@ -9,13 +9,14 @@ import os
 import time
 from datetime import datetime
 import sqlite3
+from random import randrange
 import re
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
-from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,JSON_LASTMODIFIED_TEXT_FILE,JSON_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE, VERSION
+from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,JSON_LASTMODIFIED_TEXT_FILE,JSON_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE, VERSION, SQLLITE_TIMEOUT
 
 def record_new_earthquake(new_earthquake: str):
     with open(JSON_EARTHQUAKE_TEXT_FILE, "w") as file:
@@ -87,7 +88,7 @@ def check_last_modified():
 
 def fetch_and_send_new_earthquakes():
 
-    connection = sqlite3.connect(DATABASE)
+    connection = sqlite3.connect(DATABASE, timeout=SQLLITE_TIMEOUT)
     cursor = connection.cursor()
     json_url = "https://www.jma.go.jp/bosai/quake/data/list.json"
 
@@ -138,7 +139,7 @@ def fetch_and_send_new_earthquakes():
             record_new_earthquake(quake["ctt"])
 
         send_any_to_mqtt(quake_list)
-        time.sleep(120)
+
     connection.commit()
     connection.close()     
 
@@ -169,7 +170,6 @@ def reset_all_to_zero():
     client.connect( CONST_MQTT_HOST, 1883) 
 
     for prefecture in PREFECTURE_LIST:
-        logger.info(f'Resetting quake to zero -> {prefecture["name"].lower()}')
         client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture['name'].lower()}/state", payload=0, qos=0, retain=False)
     client.disconnect()   
 
@@ -189,6 +189,8 @@ if __name__ == "__main__":
         has_been_modified = check_last_modified()
         if (has_been_modified):
             fetch_and_send_new_earthquakes()
-        time.sleep(30)
+        sleep_interval = randrange(0,30)
+        logger.info(f"Sleeping for {sleep_interval}")
+        time.sleep(sleep_interval)
         reset_all_to_zero()
         reset_any_to_zero()

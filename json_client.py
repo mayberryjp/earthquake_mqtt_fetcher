@@ -158,7 +158,7 @@ def fetch_and_send_new_earthquakes():
 
 def send_any_to_mqtt(quake_list):
     max_object = max(quake_list, key=lambda x: x["prefecture_maxi"])
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.on_publish = on_publish
     client.on_connect = on_connect
@@ -185,7 +185,7 @@ def send_any_to_mqtt(quake_list):
         print("Error disconnecting from MQTT Broker: " + str(e))
 
 def send_to_mqtt(quake):
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.on_publish = on_publish
     client.on_connect = on_connect
@@ -224,7 +224,7 @@ def reset_all_to_zero():
     with open(PREFECTURE_JSON,encoding="utf8") as f:
         PREFECTURE_LIST=json.load(f)
 
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.on_publish = on_publish
     client.on_connect = on_connect
@@ -255,7 +255,7 @@ def reset_all_to_zero():
 
 
 def reset_any_to_zero():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     client.on_publish = on_publish
     client.on_connect = on_connect

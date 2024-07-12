@@ -18,6 +18,19 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 from const import CONST_MQTT_HOST,CONST_MQTT_PASSWORD,CONST_MQTT_USERNAME,JSON_LASTMODIFIED_TEXT_FILE,JSON_EARTHQUAKE_TEXT_FILE, SEND_MQTT, LOAD_FILE, RESET_EVERY_RUN, PREFECTURE_JSON, DATABASE, VERSION, SQLLITE_TIMEOUT
 
+def on_publish(client, userdata, mid, reason_code, properties): 
+    pass
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Connected successfully.")
+    else:
+        print("Connection failed with error code " + str(rc))
+
+def on_disconnect(client, userdata, disconnect_flags, rc,properties):
+    if rc != 0:
+        print("Unexpected disconnection.")
+
 def record_new_earthquake(new_earthquake: str):
     with open(JSON_EARTHQUAKE_TEXT_FILE, "w") as file:
         file.write(new_earthquake)
@@ -147,19 +160,65 @@ def send_any_to_mqtt(quake_list):
     max_object = max(quake_list, key=lambda x: x["prefecture_maxi"])
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
-    client.connect( CONST_MQTT_HOST, 1883) 
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    try:
+      client.connect(CONST_MQTT_HOST, 1883)
+    except Exception as e:
+        print("Error connecting to MQTT Broker: " + str(e))
+
     logger.info(f"Sending max intensity as Any -> {max_object['prefecture_maxi']}")
-    client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=max_object["prefecture_maxi"], qos=0, retain=False)
-    client.disconnect()   
+    try:
+        ret = client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=max_object["prefecture_maxi"], qos=0, retain=False)
+        if ret.rc == mqtt.MQTT_ERR_SUCCESS:
+            pass
+        else:
+            print("Failed to queue message with error code " + str(ret))
+    except Exception as e:
+        print("Error publishing message: " + str(e))
+
+    try:
+        client.disconnect()
+    except Exception as e:
+        print("Error disconnecting from MQTT Broker: " + str(e))
 
 def send_to_mqtt(quake):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
-    client.connect( CONST_MQTT_HOST, 1883)
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    try:
+      client.connect(CONST_MQTT_HOST, 1883)
+    except Exception as e:
+        print("Error connecting to MQTT Broker: " + str(e))
+
     payload = json.dumps(quake)
-    client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
-    client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=quake["prefecture_maxi"], qos=0, retain=False)
-    client.disconnect()   
+    try:
+        ret = client.publish(f"earthquake/{quake['prefecture_name'].lower()}", payload=payload, qos=0, retain=False)
+        if ret.rc == mqtt.MQTT_ERR_SUCCESS:
+            pass
+        else:
+            print("Failed to queue message with error code " + str(ret))
+    except Exception as e:
+        print("Error publishing message: " + str(e))
+
+    try:
+        ret = client.publish(f"homeassistant/sensor/japan_earthquake_{quake['prefecture_name'].lower()}/state", payload=quake["prefecture_maxi"], qos=0, retain=False)
+        if ret.rc == mqtt.MQTT_ERR_SUCCESS:
+            pass
+        else:
+            print("Failed to queue message with error code " + str(ret))
+    except Exception as e:
+        print("Error publishing message: " + str(e))
+
+    try:
+        client.disconnect()
+    except Exception as e:
+        print("Error disconnecting from MQTT Broker: " + str(e)) 
 
 def reset_all_to_zero():
     with open(PREFECTURE_JSON,encoding="utf8") as f:
@@ -167,20 +226,61 @@ def reset_all_to_zero():
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
-    client.connect( CONST_MQTT_HOST, 1883) 
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    try:
+      client.connect(CONST_MQTT_HOST, 1883)
+    except Exception as e:
+        print("Error connecting to MQTT Broker: " + str(e))
+
 
     for prefecture in PREFECTURE_LIST:
-        client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture['name'].lower()}/state", payload=0, qos=0, retain=False)
-    client.disconnect()   
+
+        try:
+            ret = client.publish(f"homeassistant/sensor/japan_earthquake_{prefecture['name'].lower()}/state", payload=0, qos=0, retain=False)
+            if ret.rc == mqtt.MQTT_ERR_SUCCESS:
+                pass
+            else:
+                print("Failed to queue message with error code " + str(ret))
+        except Exception as e:
+            print("Error publishing message: " + str(e))
+
+    
+    try:
+        client.disconnect()
+    except Exception as e:
+        print("Error disconnecting from MQTT Broker: " + str(e))  
 
 
 def reset_any_to_zero():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
-    client.connect( CONST_MQTT_HOST, 1883) 
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    try:
+      client.connect(CONST_MQTT_HOST, 1883)
+    except Exception as e:
+        print("Error connecting to MQTT Broker: " + str(e))
+
     logger.info(f"Resetting quake to zero -> Any")
-    client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=0, qos=0, retain=False)
-    client.disconnect()   
+
+    try:
+        ret = client.publish(f"homeassistant/sensor/japan_earthquake_any/state", payload=0, qos=0, retain=False)
+        if ret.rc == mqtt.MQTT_ERR_SUCCESS:
+            pass
+        else:
+            print("Failed to queue message with error code " + str(ret))
+    except Exception as e:
+        print("Error publishing message: " + str(e))
+
+
+    try:
+        client.disconnect()
+    except Exception as e:
+        print("Error disconnecting from MQTT Broker: " + str(e))
 
 if __name__ == "__main__":
     print(f"I am json client running {VERSION}")

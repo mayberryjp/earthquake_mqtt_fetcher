@@ -3,7 +3,7 @@ ARG CACHEBUST=1
 FROM python:3.11.7
 
 # Set the working directory
-WORKDIR /atom-client-v1.0.28
+WORKDIR /atom-client-v1.0.29
 
 # Copy the requirements file
 #COPY requirements.txt .
@@ -25,4 +25,4 @@ RUN venv/bin/pip install pytz
 #EXPOSE 5102
 
 # Run the app
-CMD ["venv/bin/python", "atom_client.py"]
+CMD ["venv/bin/python","-u",  "atom_client.py"]

@@ -3,7 +3,7 @@ services:
   earthquake-mqtt-fetcher-json-client:
     container_name: earthquake-mqtt-fetcher-json-client
     restart: "unless-stopped"
-    image: earthquake-mqtt-fetcher-json-client:v1.0.32
+    image: earthquake-mqtt-fetcher-json-client:v1.0.33
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /earthquake_mqtt_fetcher:/data

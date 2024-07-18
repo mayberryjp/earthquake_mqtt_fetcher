@@ -237,7 +237,7 @@ def reset_all_to_zero():
     except Exception as e:
         print("Error connecting to MQTT Broker: " + str(e))
 
-    PREFECTURE_LIST=random.shuffle(PREFECTURE_LIST)
+ #   PREFECTURE_LIST=random.shuffle(PREFECTURE_LIST)
     for prefecture in PREFECTURE_LIST:
 
         try:

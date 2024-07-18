@@ -249,6 +249,9 @@ def reset_all_to_zero():
         PREFECTURE_LIST=json.load(f)
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     try:
       client.connect(CONST_MQTT_HOST, 1883)
@@ -274,6 +277,9 @@ def reset_all_to_zero():
 
 def reset_any_to_zero():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_publish = on_publish
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
     client.username_pw_set(CONST_MQTT_USERNAME,CONST_MQTT_PASSWORD)
     try:
       client.connect(CONST_MQTT_HOST, 1883)

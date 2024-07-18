@@ -9,8 +9,10 @@ import os
 import time
 from datetime import datetime
 import sqlite3
-from random import randrange
+from random import randrange 
+from random import shuffle
 import re
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -235,7 +237,7 @@ def reset_all_to_zero():
     except Exception as e:
         print("Error connecting to MQTT Broker: " + str(e))
 
-
+    PREFECTURE_LIST=shuffle.array(PREFECTURE_LIST)
     for prefecture in PREFECTURE_LIST:
 
         try:

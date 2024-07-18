@@ -2,7 +2,7 @@
 FROM python:3.11.7
 
 # Set the working directory
-WORKDIR /json-client-v1.0.30
+WORKDIR /json-client-v1.0.31
 
 # Copy the requirements file
 #COPY requirements.txt .

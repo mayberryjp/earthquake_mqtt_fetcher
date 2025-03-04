@@ -1,4 +1,4 @@
-CONST_MQTT_HOST="earthquake.832-5.jp"
+CONST_MQTT_HOST="earthquake.mayberry.farm"
 CONST_MQTT_USERNAME="japan"
 CONST_MQTT_PASSWORD="earthquake"
 JSON_EARTHQUAKE_TEXT_FILE="/data/json_earthquake.txt"

@@ -285,7 +285,7 @@ if __name__ == "__main__":
         has_been_modified = check_last_modified()
         if (has_been_modified):
             fetch_and_send_new_earthquakes()
-        sleep_interval = randrange(0,30)
+        sleep_interval = randrange(30,60)
         logger.info(f"Sleeping for {sleep_interval}")
         time.sleep(sleep_interval)
         reset_all_to_zero()

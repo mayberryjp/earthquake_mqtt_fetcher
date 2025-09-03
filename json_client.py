@@ -49,10 +49,11 @@ def remove_non_numeric(input_str):
 
 def initialize():
     if RESET_EVERY_RUN==1:
-        os.remove(JSON_LASTMODIFIED_TEXT_FILE)
-        os.remove(JSON_EARTHQUAKE_TEXT_FILE)
-
-
+        try:
+            os.remove(JSON_LASTMODIFIED_TEXT_FILE)
+            os.remove(JSON_EARTHQUAKE_TEXT_FILE)
+        except FileNotFoundError:
+            pass
 
     try:
         # Attempt to open the file in read mode
@@ -70,6 +71,23 @@ def initialize():
         # If the file doesn't exist, create it
         with open(JSON_EARTHQUAKE_TEXT_FILE, "w") as file:
             file.write("")
+            
+    # Initialize the database and create tables if they don't exist
+    connection = sqlite3.connect(DATABASE, timeout=SQLLITE_TIMEOUT)
+    cursor = connection.cursor()
+    
+    # Create the earthquakes table if it doesn't exist
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS earthquakes (
+        eid TEXT PRIMARY KEY,
+        arrival_timestamp TEXT,
+        json_timestamp TEXT
+    )
+    ''')
+    
+    connection.commit()
+    connection.close()
+    logger.info("Database initialized with required tables")
 
 def check_last_modified():
 

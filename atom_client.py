@@ -72,6 +72,23 @@ def initialize():
         # If the file doesn't exist, create it
         with open(ATOM_EARTHQUAKE_TEXT_FILE, "w") as file:
             file.write("")
+            
+    # Initialize the database and create tables if they don't exist
+    connection = sqlite3.connect(DATABASE, timeout=SQLLITE_TIMEOUT)
+    cursor = connection.cursor()
+    
+    # Create the earthquakes table if it doesn't exist
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS earthquakes (
+        eid TEXT PRIMARY KEY,
+        arrival_timestamp TEXT,
+        atom_timestamp TEXT
+    )
+    ''')
+    
+    connection.commit()
+    connection.close()
+    logger.info("Database initialized with required tables")
 
 def check_last_modified():
 
@@ -192,7 +209,7 @@ def send_any_to_mqtt(quake_list):
     except Exception as e:
         print("Error publishing message: " + str(e))
 
-    client.loop_start()
+    client.loop_stop()
     try:
         client.disconnect()
     except Exception as e:

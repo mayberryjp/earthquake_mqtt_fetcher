@@ -1,3 +1,14 @@
-earthquake.db
-*.txt
-const.py
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+.env
+
+# Local runtime artifacts
+*.db
+*_state.json

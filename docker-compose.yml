@@ -1,0 +1,18 @@
+services:
+  earthquake-mqtt-fetcher:
+    image: mayberry4477/earthquake-mqtt-fetcher:latest
+    container_name: earthquake-mqtt-fetcher
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: earthquake.mayberry.farm
+      MQTT_PORT: "1883"
+      MQTT_USERNAME: japan
+      MQTT_PASSWORD: earthquake
+      DATABASE: /data/earthquake.db
+      DATA_DIR: /data
+      SEND_MQTT: "1"
+      LOAD_FILE: "0"
+      RESET_EVERY_RUN: "0"
+      LOG_LEVEL: INFO
+    volumes:
+      - /earthquake_mqtt_fetcher:/data

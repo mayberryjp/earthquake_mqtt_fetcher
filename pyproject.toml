@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "earthquake-mqtt-fetcher"
+version = "2.0.0"
+description = "Fetch JMA earthquake information and publish it to MQTT for Home Assistant"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "requests>=2.32",
+  "paho-mqtt>=2.1",
+  "feedparser>=6.0",
+  "xmltodict>=0.13",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "bandit>=1.7",
+  "types-requests",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"earthquake_mqtt_fetcher" = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["feedparser", "xmltodict", "paho.mqtt.*"]
+ignore_missing_imports = true
